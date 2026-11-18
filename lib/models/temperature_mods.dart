@@ -1,0 +1,1 @@
+enum TemperatureMods { celsius, fahrenheit }

@@ -1,27 +1,55 @@
+import 'package:climapp/models/temperature_mods.dart';
 import 'package:climapp/pages/fire_page.dart';
 import 'package:climapp/pages/solar_page.dart';
 import 'package:climapp/pages/temperature_page.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MyApp(darkMode: false));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final bool darkMode;
+  const MyApp({super.key, required this.darkMode});
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  late bool _darkMode;
+  Icon navigationModIcon = Icon(Icons.dark_mode);
+  String themText = 'Activer le mode sombre';
   int currentPageIndex = 0;
+  TemperatureMods temperatureMod = TemperatureMods.celsius;
+
+  void toogleNavigationTheme(bool value) {
+    setState(() {
+      navigationModIcon = (value)
+          ? Icon(Icons.light_mode)
+          : Icon(Icons.dark_mode);
+
+      themText = (value) ? 'Activer le mode clair' : 'Activer le mode sombre';
+      _darkMode = value;
+    });
+  }
+
+  void toogleTemperatureMode(Set<TemperatureMods> selection) {
+    setState(() {
+      temperatureMod = selection.first;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _darkMode = widget.darkMode;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Clim-App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
-      ),
+      theme: _darkMode ? ThemeData.dark() : ThemeData.light(),
       home: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.blueGrey,
@@ -30,10 +58,47 @@ class _MyAppState extends State<MyApp> {
             style: TextStyle(fontStyle: FontStyle.italic),
           ),
         ),
+        drawer: Drawer(
+          child: ListView(
+            padding: .zero,
+            children: <Widget>[
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.blueGrey),
+                child: Text(
+                  'Paramétres',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ),
+              SwitchListTile(
+                title: Text(themText),
+                value: _darkMode,
+                onChanged: toogleNavigationTheme,
+                secondary: navigationModIcon,
+              ),
+              ListTile(
+                title: Text('Unité de température'),
+                trailing: SegmentedButton(
+                  segments: const <ButtonSegment<TemperatureMods>>[
+                    ButtonSegment<TemperatureMods>(
+                      value: TemperatureMods.celsius,
+                      label: Text('°C'),
+                    ),
+                    ButtonSegment<TemperatureMods>(
+                      value: TemperatureMods.fahrenheit,
+                      label: Text('°F'),
+                    ),
+                  ],
+                  selected: {temperatureMod},
+                  onSelectionChanged: toogleTemperatureMode,
+                ),
+              ),
+            ],
+          ),
+        ),
         body: IndexedStack(
           index: currentPageIndex,
           children: [
-            TemperaturePage(title: "Ici c'est la page de Température ."),
+            TemperaturePage(title: "Ici c'est la page de température ",temperatureMod: temperatureMod,),
             FirePage(title: "Ici c'est la pages des incendies ."),
             SolarPage(title: "Ici c'est la page de l'énergie solaire ."),
           ],
